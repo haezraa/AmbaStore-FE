@@ -21,7 +21,7 @@ export default function MainLayout() {
           {/* logo */}
           <Link to="/" className="flex items-center">
             <img 
-              src="/images/logo.png" 
+              src="/images/ambatukam.jpg" 
               alt="Logo AmbaGameStore" 
               className="h-10 md:h-12 object-contain hover:scale-105 transition-transform" 
             />
