@@ -22,7 +22,7 @@ export default function MainLayout() {
           <Link to="/" className="flex items-center">
             <img 
               src="/images/ambatukam.jpg" 
-              alt="Logo AmbaGameStore" 
+              alt="Logo AmbaStore" 
               className="h-10 md:h-12 object-contain hover:scale-105 transition-transform" 
             />
           </Link>
@@ -60,7 +60,7 @@ export default function MainLayout() {
       </main>
 
       <footer className="text-center p-6 border-t border-abu text-gray-400 text-sm mt-8">
-        &copy; 2024 <span className="text-emas font-bold">AmbaGameStore</span>. Top Up Cepat, Auto Mythic.
+        &copy; 2026 <span className="text-emas font-bold">AmbaStore</span>. Top Up Cepat, Auto Menang.
       </footer>
     </div>
   );

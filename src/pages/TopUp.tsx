@@ -83,7 +83,7 @@ export default function TopUp() {
        !paymentPilihan ||
        !email || !whatsapp
     ) {
-        alert("Waduh, data belum lengkap nih Bro! Cek lagi ya. 😅");
+        alert("Mohon dilengkapi semua data sebelum melanjutkan.");
         return;
     }
     setShowModal(true);
@@ -109,12 +109,12 @@ export default function TopUp() {
         const response = await api.post('/transaction', payload);
         if (response.data.sukses) {
             setShowModal(false);
-            alert(`MANTAP! Invoice berhasil dibuat: ${response.data.data.invoice_code}`);
+            alert(`Invoice berhasil dibuat: ${response.data.data.invoice_code}`);
             navigate('/'); 
         }
     } catch (error) {
         console.error("Gagal transaksi:", error);
-        alert("Transaksi gagal Bro, coba refresh dulu.");
+        alert("Transaksi gagal.");
     }
   }
 
@@ -254,7 +254,7 @@ export default function TopUp() {
             </div>
           </div>
 
-          {/* pilih pembayaran */}
+          {/* pilih bayar */}
           <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg group hover:border-emas/30 transition-colors">
             <div className="bg-gelap/50 p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">3</div>
@@ -376,7 +376,7 @@ export default function TopUp() {
           </div>
       )}
 
-      {/* modal konfir */}
+      {/* modal konfirm */}
       {showModal && nominalPilihan && paymentPilihan && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fade-in">
               <div className="bg-abu w-full max-w-md rounded-3xl border border-gray-600 shadow-2xl overflow-hidden animate-scale-up flex flex-col relative">
