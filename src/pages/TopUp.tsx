@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, CheckCircle2, ShieldCheck, X, Mail, Phone, TicketPercent, 
-  Gamepad2, Wallet, User 
+  Gamepad2, Wallet, User, Zap 
 } from 'lucide-react';
 import api from '../services/api';
 import type { Game, Nominal, PaymentMethod } from '../types';
@@ -15,6 +15,7 @@ export default function TopUp() {
   const [payments, setPayments] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Form States
   const [userId, setUserId] = useState("");
   const [zoneId, setZoneId] = useState("");
   const [serverId, setServerId] = useState("");
@@ -44,7 +45,7 @@ export default function TopUp() {
         setPayments(paymentRes.data.data);
         setLoading(false);
       } catch (error) {
-        console.error(error);
+        console.error("Gagal ambil data:", error);
         setLoading(false);
       }
     };
@@ -52,18 +53,15 @@ export default function TopUp() {
   }, [id]);
 
   useEffect(() => {
-    if (showModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    if (showModal) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
     return () => { document.body.style.overflow = 'unset'; }
   }, [showModal]);
 
   if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gelap">
        <div className="w-12 h-12 border-4 border-emas border-t-transparent rounded-full animate-spin"></div>
-       <p className="text-emas font-bold animate-pulse">Sedang memuat data...</p>
+       <p className="text-emas font-bold animate-pulse">Sabar ya bos...</p>
     </div>
   );
   
@@ -83,43 +81,20 @@ export default function TopUp() {
        !paymentPilihan ||
        !email || !whatsapp
     ) {
-        alert("Mohon dilengkapi semua data sebelum melanjutkan.");
+        alert("Waduh, data belum lengkap nih Bro! Cek lagi ya. 😅");
         return;
     }
     setShowModal(true);
   }
 
   const handleFinalConfirm = async () => {
-    const payload = {
-        game_name: game?.nama,
-        game_publisher: game?.publisher,
-        item_name: nominalPilihan?.jumlah,
-        user_id: userId,
-        zone_id: zoneId,
-        server_id: serverId,
-        payment_method: paymentPilihan?.nama,
-        price: hargaAsli,
-        tax: pajak,
-        total_price: totalBayar,
-        email: email,
-        whatsapp: whatsapp
-    };
-
-    try {
-        const response = await api.post('/transaction', payload);
-        if (response.data.sukses) {
-            setShowModal(false);
-            alert(`Invoice berhasil dibuat: ${response.data.data.invoice_code}`);
-            navigate('/'); 
-        }
-    } catch (error) {
-        console.error("Gagal transaksi:", error);
-        alert("Transaksi gagal.");
-    }
+    alert("Simulasi Transaksi Berhasil!");
+    setShowModal(false);
+    navigate('/');
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32 pt-6">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-40 pt-6">
       
       <Link to="/" className="inline-flex items-center gap-2 mb-8 text-gray-400 hover:text-emas transition-colors font-medium text-sm">
         <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
@@ -127,50 +102,48 @@ export default function TopUp() {
 
       <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
         
-        {/* kolum kiri */}
+        {/* === KOLOM KIRI (Info Game) === */}
         <div className="lg:col-span-4">
-            <div className="bg-abu/50 backdrop-blur-sm p-6 rounded-3xl border border-gray-700/50 shadow-2xl sticky top-24 lg:text-left text-center">
-                <div className="relative inline-block mb-4">
-                    <img src={game.gambar} alt={game.nama} className="w-32 h-32 lg:w-40 lg:h-40 object-cover rounded-2xl mx-auto shadow-lg ring-4 ring-emas/20" />
-                    <div className="absolute -bottom-2 -right-2 bg-emas text-gelap font-bold px-3 py-1 rounded-full text-xs shadow-lg">
-                        Resmi
-                    </div>
+            <div className="bg-abu/50 backdrop-blur-sm p-6 rounded-3xl border border-gray-700/50 shadow-2xl sticky top-24 text-center lg:text-left">
+                <div className="relative inline-block lg:block mb-6">
+                     <img src={game.gambar} alt={game.nama} className="w-40 h-40 object-cover rounded-2xl shadow-lg ring-2 ring-emas/50 mx-auto lg:mx-0" />
                 </div>
-                <h2 className="text-2xl lg:text-3xl font-black text-white mb-1">{game.nama}</h2>
-                <p className="text-emas font-medium text-sm mb-6">{game.publisher}</p>
+                
+                <h2 className="text-3xl font-black text-white mb-2">{game.nama}</h2>
+                <p className="text-emas font-medium text-sm mb-6 uppercase tracking-wider">{game.publisher}</p>
+                
+                <div className="text-gray-400 text-sm leading-relaxed mb-6" dangerouslySetInnerHTML={{__html: game.deskripsi}}></div>
                 
                 <div className="border-t border-gray-700 pt-4 space-y-3 text-sm text-gray-300">
-                    <div className="flex items-center gap-3">
-                        <ShieldCheck className="w-5 h-5 text-green-500" />
-                        <span>Jaminan Layanan 24 Jam</span>
+                     <div className="flex items-center gap-2 justify-center lg:justify-start">
+                        <Zap className="w-4 h-4 text-emas" /> Proses Detik-an
                     </div>
-                    <div className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-blue-500" />
-                        <span>Pembayaran Aman & Instan</span>
+                    <div className="flex items-center gap-2 justify-center lg:justify-start">
+                        <ShieldCheck className="w-4 h-4 text-green-500" /> Jaminan Aman 100%
                     </div>
                 </div>
             </div>
         </div>
 
-        {/* kolum kanan */}
+        {/* === KOLOM KANAN (Form) === */}
         <div className="lg:col-span-8 space-y-8">
           
-          {/* data akun */}
-          <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg group hover:border-emas/30 transition-colors">
+          {/* 1. DATA AKUN */}
+          <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
             <div className="bg-gelap/50 p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">1</div>
-               <h3 className="text-lg font-bold text-white">Masukkan Data Akun</h3>
+               <h3 className="text-lg font-bold text-white">Masukkan ID Akun</h3>
             </div>
             
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative col-span-1 md:col-span-2 lg:col-span-1">
                     <label className="text-xs text-gray-400 mb-1 block ml-1">User ID</label>
                     <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
                         <input 
                             type="text" 
-                            placeholder="Ketikan User ID" 
-                            className="w-full bg-gelap border border-gray-600 rounded-xl py-3 pl-10 pr-4 text-white focus:border-emas focus:ring-1 focus:ring-emas focus:outline-none transition-all placeholder:text-gray-600 font-medium" 
+                            placeholder="Contoh: 12345678" 
+                            className="w-full bg-gelap border border-gray-600 rounded-xl py-3 pl-12 pr-4 text-white focus:border-emas focus:ring-1 focus:ring-emas focus:outline-none transition-all placeholder:text-gray-600 font-medium" 
                             value={userId} 
                             onChange={(e) => setUserId(e.target.value)} 
                         />
@@ -181,11 +154,11 @@ export default function TopUp() {
                      <div className="relative">
                         <label className="text-xs text-gray-400 mb-1 block ml-1">Zone ID</label>
                         <div className="relative">
-                            <Gamepad2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                            <Gamepad2 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
                             <input 
                                 type="text" 
-                                placeholder="Ketikan Zone ID" 
-                                className="w-full bg-gelap border border-gray-600 rounded-xl py-3 pl-10 pr-4 text-white focus:border-emas focus:ring-1 focus:ring-emas focus:outline-none transition-all placeholder:text-gray-600 font-medium" 
+                                placeholder="Contoh: 2024" 
+                                className="w-full bg-gelap border border-gray-600 rounded-xl py-3 pl-12 pr-4 text-white focus:border-emas focus:ring-1 focus:ring-emas focus:outline-none transition-all placeholder:text-gray-600 font-medium" 
                                 value={zoneId} 
                                 onChange={(e) => setZoneId(e.target.value)} 
                             />
@@ -206,12 +179,11 @@ export default function TopUp() {
                         </select>
                     </div>
                 )}
-                <p className="col-span-1 md:col-span-2 text-xs text-gray-500 italic mt-1">*Pastikan ID yang dimasukkan benar agar tidak salah kirim.</p>
             </div>
           </div>
 
-          {/* pilih item */}
-          <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg group hover:border-emas/30 transition-colors">
+          {/* 2. PILIH ITEM (FULL COLOR) */}
+          <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
             <div className="bg-gelap/50 p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">2</div>
                <h3 className="text-lg font-bold text-white">Pilih Nominal</h3>
@@ -220,30 +192,45 @@ export default function TopUp() {
             <div className="p-6">
                 {categories.map((kategori) => (
                 <div key={kategori} className="mb-8 last:mb-0">
-                    <h4 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emas"></span>
+                    <h4 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2 border-l-4 border-emas pl-3">
                         {kategori}
                     </h4>
+                    
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {game.nominals.filter(n => n.kategori === kategori).map((item) => (
                         <button 
                             key={item.id} 
                             onClick={() => setNominalPilihan(item)}
                             className={`
-                                relative p-4 rounded-2xl border text-left transition-all duration-300 group/btn overflow-hidden
+                                relative flex flex-col justify-between rounded-xl p-3 text-left transition-all duration-300 border h-full min-h-[100px] overflow-hidden group
                                 ${nominalPilihan?.id === item.id 
-                                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-emas shadow-[0_0_15px_rgba(234,179,8,0.3)] transform -translate-y-1' 
+                                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-emas shadow-lg transform -translate-y-1' 
                                     : 'bg-gelap border-gray-700 hover:border-gray-500 hover:bg-gray-800'}
                             `}
                         >
-                            <div className="font-black text-white text-sm md:text-base mb-2 z-10 relative">{item.jumlah}</div>
-                            <div className="text-emas font-medium text-sm z-10 relative">Rp {item.harga.toLocaleString()}</div>
-                            
-                            <img src={game.gambar} className="absolute -right-4 -bottom-4 w-16 h-16 opacity-10 grayscale group-hover/btn:grayscale-0 transition-all rotate-12" />
-                            
+                            <div className="flex justify-between items-start gap-2 mb-2">
+                                <span className="font-bold text-white text-sm md:text-base leading-tight">
+                                    {item.jumlah}
+                                </span>
+                                
+                                {/* FIX: Full Color Always (Gak ada grayscale lagi) */}
+                                <img 
+                                    src={(item as any).image ? (item as any).image : game.gambar} 
+                                    alt="icon" 
+                                    className="w-8 h-8 object-cover rounded-md flex-shrink-0" 
+                                />
+                            </div>
+
+                            <div className="mt-auto pt-2 border-t border-gray-700/50">
+                                <span className={`text-xs md:text-sm font-semibold ${nominalPilihan?.id === item.id ? 'text-emas' : 'text-gray-400 group-hover:text-gray-300'}`}>
+                                    Rp {item.harga.toLocaleString()}
+                                </span>
+                            </div>
+
+                            {/* Centang Pojok (Style Emas) */}
                             {nominalPilihan?.id === item.id && (
-                                <div className="absolute top-0 right-0 bg-emas text-gelap p-1 rounded-bl-xl shadow-lg">
-                                    <CheckCircle2 className="w-4 h-4" />
+                                <div className="absolute top-0 right-0 bg-emas w-6 h-6 rounded-bl-xl flex items-center justify-center shadow-md">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-gelap" />
                                 </div>
                             )}
                         </button>
@@ -254,8 +241,8 @@ export default function TopUp() {
             </div>
           </div>
 
-          {/* pilih bayar */}
-          <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg group hover:border-emas/30 transition-colors">
+          {/* 3. PEMBAYARAN (CEKLIS DI POJOK + FULL COLOR) */}
+          <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
             <div className="bg-gelap/50 p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">3</div>
                <h3 className="text-lg font-bold text-white">Metode Pembayaran</h3>
@@ -267,19 +254,20 @@ export default function TopUp() {
                         key={pay.id}
                         onClick={() => setPaymentPilihan(pay)}
                         className={`
-                            relative p-4 rounded-2xl border flex flex-col items-center justify-center gap-3 transition-all duration-200 h-28 bg-white
+                            relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-200 h-24 bg-white overflow-hidden
                             ${paymentPilihan?.id === pay.id 
-                                ? 'border-emas ring-4 ring-emas/30 grayscale-0 transform scale-105 z-10' 
-                                : 'border-gray-600 grayscale hover:grayscale-0 opacity-80 hover:opacity-100 hover:scale-105 hover:shadow-lg'}
+                                ? 'border-emas ring-4 ring-emas/30 transform scale-105 z-10' 
+                                : 'border-gray-200 hover:scale-105 hover:shadow-lg'}
                         `}
                     >
+                        {/* Gambar Pembayaran Full Color */}
                         <img src={pay.gambar} alt={pay.nama} className="h-8 object-contain" />
-                        <div className="w-full border-t border-gray-200 mt-1"></div>
-                        <span className="text-[10px] font-bold text-gray-800 text-center uppercase tracking-wide">{pay.nama}</span>
+                        <span className="text-[10px] font-bold text-gray-800 text-center uppercase tracking-wide mt-1">{pay.nama}</span>
                         
+                        {/* Centang Pojok (Style Emas - MATCHING SAMA ITEM) */}
                         {paymentPilihan?.id === pay.id && (
-                            <div className="absolute top-2 right-2 text-green-600 animate-bounce">
-                                <CheckCircle2 className="w-5 h-5" />
+                            <div className="absolute top-0 right-0 bg-emas w-6 h-6 rounded-bl-xl flex items-center justify-center shadow-md animate-fade-in">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-gelap" />
                             </div>
                         )}
                     </button>
@@ -287,12 +275,13 @@ export default function TopUp() {
             </div>
           </div>
 
-          {/* detail kontak */}
-          <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg group hover:border-emas/30 transition-colors">
+          {/* 4. DETAIL KONTAK */}
+          <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
             <div className="bg-gelap/50 p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">4</div>
                <h3 className="text-lg font-bold text-white">Detail Kontak</h3>
             </div>
+            
             <div className="p-6 grid md:grid-cols-2 gap-6">
                 <div>
                     <label className="text-xs text-gray-400 mb-1 block ml-1">Email</label>
@@ -323,7 +312,7 @@ export default function TopUp() {
             </div>
           </div>
 
-          {/* kode promo */}
+          {/* 5. KODE PROMO */}
           <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
              <div className="bg-gelap/50 p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">5</div>
@@ -341,7 +330,7 @@ export default function TopUp() {
                             onChange={(e) => setPromoCode(e.target.value)}
                         />
                     </div>
-                    <button className="bg-gradient-to-r from-gray-700 to-gray-800 border border-gray-600 text-white font-bold px-8 rounded-xl hover:from-emas hover:to-yellow-600 hover:text-gelap hover:border-emas transition-all">
+                    <button className="bg-gray-700 border border-gray-600 text-white font-bold px-8 rounded-xl hover:bg-emas hover:text-gelap hover:border-emas transition-all">
                         Gunakan
                     </button>
                 </div>
@@ -351,94 +340,100 @@ export default function TopUp() {
         </div>
       </div>
 
-      {/* float pay  */}
+      {/* FLOATING BOTTOM BAR */}
       {nominalPilihan && paymentPilihan && (
-          <div className="fixed bottom-0 left-0 w-full bg-abu/90 backdrop-blur-md border-t border-gray-700 p-4 z-50 animate-slide-up shadow-[0_-5px_30px_rgba(0,0,0,0.8)]">
+          <div className="fixed bottom-0 left-0 w-full bg-abu/95 backdrop-blur-xl border-t border-gray-700 p-4 z-50 animate-slide-up shadow-[0_-5px_30px_rgba(0,0,0,0.8)]">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="hidden md:block bg-gelap p-3 rounded-xl border border-gray-700">
+                <div className="flex items-center gap-4 w-full md:w-auto pl-2">
+                    <div className="bg-gelap p-3 rounded-xl border border-gray-600 hidden md:block">
                         <Wallet className="w-6 h-6 text-emas" />
                     </div>
                     <div>
                         <p className="text-gray-400 text-xs uppercase tracking-wide">Total Pembayaran</p>
                         <div className="text-3xl font-black text-emas drop-shadow-md">Rp {totalBayar.toLocaleString()}</div>
-                        <p className="text-gray-500 text-xs">{nominalPilihan.jumlah} via {paymentPilihan.nama}</p>
+                        <p className="text-white text-sm font-medium mt-1 flex items-center gap-2">
+                            {nominalPilihan.jumlah} <span className="text-gray-600">|</span> {paymentPilihan.nama}
+                        </p>
                     </div>
                 </div>
                 <button 
                     onClick={handleBeliSekarang}
                     className="w-full md:w-auto bg-gradient-to-r from-emas to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-gelap font-black py-4 px-12 rounded-xl text-lg shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-transform active:scale-95 flex items-center justify-center gap-2"
                 >
-                    <Wallet className="w-5 h-5" />
                     BELI SEKARANG
                 </button>
             </div>
           </div>
       )}
 
-      {/* modal konfirm */}
+      {/* MODAL CONFIRMATION */}
       {showModal && nominalPilihan && paymentPilihan && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fade-in">
-              <div className="bg-abu w-full max-w-md rounded-3xl border border-gray-600 shadow-2xl overflow-hidden animate-scale-up flex flex-col relative">
-                  
-                  <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-5 border-b border-gray-700 flex justify-between items-center">
-                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <ShieldCheck className="text-emas" /> Konfirmasi Top Up
-                      </h3>
-                      <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white bg-gray-700 hover:bg-red-500 rounded-full p-1 transition-colors"><X className="w-5 h-5" /></button>
+              <div className="bg-abu w-full max-w-md rounded-3xl border border-gray-600 shadow-2xl overflow-hidden flex flex-col relative">
+                  <div className="bg-gelap p-5 border-b border-gray-700 flex justify-between items-center">
+                      <h3 className="text-xl font-bold text-white">Konfirmasi Top Up</h3>
+                      <button onClick={() => setShowModal(false)}><X className="text-gray-400 hover:text-white" /></button>
                   </div>
-
-                  <div className="p-6 space-y-5">
-                      <div className="flex items-center gap-4 bg-gelap p-4 rounded-2xl border border-gray-700">
-                          <img src={game.gambar} className="w-16 h-16 rounded-xl object-cover shadow-md" />
+                  <div className="p-6 space-y-4">
+                      <div className="flex items-center gap-4 bg-gelap p-4 rounded-xl border border-gray-700">
+                          <img src={game.gambar} className="w-16 h-16 rounded-lg object-cover" />
                           <div>
-                              <div className="font-black text-white text-lg">{nominalPilihan.jumlah}</div>
-                              <div className="text-sm text-gray-400">{game.nama} - {game.publisher}</div>
+                              <div className="font-bold text-white text-lg">{nominalPilihan.jumlah}</div>
+                              <div className="text-sm text-gray-400">{game.nama}</div>
                           </div>
                       </div>
 
-                      <div className="space-y-3 text-sm bg-gelap/30 p-4 rounded-xl border border-gray-700/50">
-                          <div className="flex justify-between items-center border-b border-gray-700 pb-2">
-                              <span className="text-gray-400">ID Akun</span>
-                              <span className="font-bold text-white tracking-wide">{userId} {zoneId ? `(${zoneId})` : ''}</span>
-                          </div>
-                           <div className="flex justify-between items-start border-b border-gray-700 pb-2">
-                              <span className="text-gray-400">Kontak</span>
-                              <div className="text-right">
-                                  <span className="font-bold text-white block">{email}</span>
-                                  <span className="text-gray-400 text-xs">{whatsapp}</span>
-                              </div>
-                          </div>
+                      <div className="space-y-2 text-sm text-gray-300">
                           <div className="flex justify-between items-center">
-                              <span className="text-gray-400">Metode Bayar</span>
-                              <span className="font-bold text-white bg-white/10 px-2 py-1 rounded text-xs">{paymentPilihan.nama}</span>
+                              <span>User ID:</span> 
+                              <span className="text-white font-bold">{userId}</span>
+                          </div>
+                          
+                          {zoneId && (
+                              <div className="flex justify-between items-center">
+                                  <span>Zone ID:</span> 
+                                  <span className="text-white font-bold">{zoneId}</span>
+                              </div>
+                          )}
+                          
+                          {serverId && (
+                              <div className="flex justify-between items-center">
+                                  <span>Server:</span> 
+                                  <span className="text-white font-bold">{serverId}</span>
+                              </div>
+                          )}
+
+                           <div className="flex justify-between items-center">
+                              <span>WhatsApp:</span> 
+                              <span className="text-white font-bold">{whatsapp}</span>
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                              <span>Metode Bayar:</span> 
+                              <span className="text-white font-bold bg-white/10 px-2 py-0.5 rounded text-xs">{paymentPilihan.nama}</span>
+                          </div>
+                          
+                          <div className="border-t border-gray-600 my-3 border-dashed"></div>
+                          
+                          <div className="flex justify-between">
+                              <span>Harga Item:</span> 
+                              <span>Rp {hargaAsli.toLocaleString()}</span>
+                          </div>
+                           <div className="flex justify-between">
+                              <span>Pajak (11%):</span> 
+                              <span>Rp {pajak.toLocaleString()}</span>
+                          </div>
+
+                          <div className="flex justify-between text-lg font-bold text-emas pt-2 border-t border-gray-600 mt-2">
+                              <span>Total Bayar:</span> 
+                              <span>Rp {totalBayar.toLocaleString()}</span>
                           </div>
                       </div>
 
-                      <div className="bg-gelap p-4 rounded-xl border border-dashed border-gray-600">
-                          <div className="flex justify-between mb-1">
-                              <span className="text-gray-400">Harga Item</span>
-                              <span className="font-medium text-white">Rp {hargaAsli.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between mb-3">
-                              <span className="text-gray-400">Pajak (11%)</span>
-                              <span className="font-medium text-white">Rp {pajak.toLocaleString()}</span>
-                          </div>
-                          <div className="border-t border-gray-600 pt-3 flex justify-between items-center">
-                              <span className="text-gray-300 font-bold">Total Bayar</span>
-                              <span className="text-xl font-black text-emas">Rp {totalBayar.toLocaleString()}</span>
-                          </div>
-                      </div>
-                  </div>
-
-                  <div className="p-5 border-t border-gray-700 bg-gelap">
-                      <button 
-                        onClick={handleFinalConfirm}
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform active:scale-95 transition-all flex justify-center items-center gap-2"                    >
-                          Konfirmasi
+                      <button onClick={handleFinalConfirm} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl mt-4 shadow-lg shadow-blue-500/20">
+                          BAYAR SEKARANG
                       </button>
                   </div>
-
               </div>
           </div>
       )}

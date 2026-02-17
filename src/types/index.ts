@@ -4,6 +4,7 @@ export interface Nominal {
   jumlah: string;
   harga: number;
   kategori: string;
+  image?: string;
 }
 
 export interface Game {
