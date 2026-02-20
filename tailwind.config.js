@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        'gelap': '#222831',       
+        'gelap': '#272727',       
         'abu': '#393E46',        
         'emas': '#FFD369',        
         'terang': '#EEEEEE',      
