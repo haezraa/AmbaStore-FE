@@ -84,18 +84,29 @@ export default function TopUp() {
   
   const categories = Array.from(new Set(game.nominals.map(n => n.kategori)));
 
-  const handleCekNickname = () => {
-      if (!userId) return showToast("User ID wajib diisi bro!", "error");
-      if (game.input_type === 'id_zone' && !zoneId) return showToast("Zone ID juga wajib diisi bro!", "error");
+  const handleCekNickname = async () => {
+      if (!userId) return showToast("User ID wajib diisi", "error");
+      if (game?.input_type === 'id_zone' && !zoneId) return showToast("Zone ID juga wajib diisi", "error");
 
       setIsChecking(true);
       setNickname(""); 
 
-      setTimeout(() => {
-          setNickname("Ambatron_Savage99"); 
-          setIsChecking(false);
-          showToast("Nickname berhasil ditemukan!", "success");
-      }, 1500);
+      try {
+          const response = await api.post('/check-nickname', {
+              user_id: userId,
+              zone_id: zoneId
+          });
+
+          if (response.data.sukses) {
+              setNickname(response.data.nickname); 
+              showToast("Nickname berhasil ditemukan!", "success");
+          }
+      } catch (error: any) {
+          const pesanError = error.response?.data?.pesan || "Gagal cek nickname. Coba lagi ya.";
+          showToast(pesanError, "error");
+      } finally {
+          setIsChecking(false); 
+      }
   }
 
   const handleBeliSekarang = () => {
@@ -106,12 +117,12 @@ export default function TopUp() {
        !paymentPilihan ||
        !email || !whatsapp
     ) {
-        showToast("Waduh, data belum lengkap nih Bro! Cek lagi ya. 😅", "error");
+        showToast("Lengkapi dulu data nya", "error");
         return;
     }
     
     if (!nickname && (game.input_type === 'id_zone')) {
-        showToast("Cek Nickname lu dulu bro biar gak salah kirim!", "error");
+        showToast("Cek Nickname terlebih dahulu", "error");
         return;
     }
     setShowModal(true);
@@ -156,7 +167,7 @@ export default function TopUp() {
         }
     } catch (error) {
         console.error("Error transaksi:", error);
-        showToast("Waduh error server bro! Cek console ya.", "error");
+        showToast("Server error.", "error");
     }
   }
 
