@@ -1,9 +1,18 @@
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Search, Home, Receipt, Trophy } from 'lucide-react';
+import { Search, Home, Receipt, Trophy, X } from 'lucide-react';
+import api from '../services/api';
+import type { Game } from '../types';
 
 export default function MainLayout() {
   const location = useLocation();
   const path = location.pathname;
+
+  // state buat search bar
+  const [games, setGames] = useState<Game[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
     { name: 'Home', path: '/', icon: <Home className="w-6 h-6" /> },
@@ -11,14 +20,40 @@ export default function MainLayout() {
     { name: 'Leaderboard', path: '/leaderboard', icon: <Trophy className="w-6 h-6" /> },
   ];
 
+  useEffect(() => {
+    const fetchGames = async () => {
+      try {
+        const response = await api.get('/games');
+        setGames(response.data.data);
+      } catch (error) {
+        console.error("Gagal memuat data game untuk pencarian:", error);
+      }
+    };  
+    fetchGames();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredGames = games.filter(game =>
+    game.nama.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-gelap text-terang font-sans selection:bg-emas selection:text-gelap flex flex-col md:flex-row relative overflow-x-hidden">
       
       {/* navbar */}
-      <nav className="fixed top-0 left-0 w-full h-20 border-b border-gray-800 bg-gelap/90 backdrop-blur-md z-50 flex items-center justify-between shadow-md transition-all">
+      <nav className="fixed top-0 left-0 w-full h-20 border-b border-gray-800 bg-abu z-50 flex items-center justify-between shadow-md transition-all">
         
         {/* logo */}
-        <Link to="/" className="flex items-center flex-shrink-0 ml-12 md:ml-24 lg:ml-32">
+       <Link to="/" className="flex items-center flex-shrink-0 ml-14 md:ml-40 lg:ml-48">
           <img 
             src="/images/ambatukam.jpg" 
             alt="Logo AmbaStore" 
@@ -26,13 +61,61 @@ export default function MainLayout() {
           />
         </Link>
 
-        <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
+        {/* search bar */}
+        <div ref={searchRef} className="hidden md:flex flex-1 max-w-xl mx-8 relative group">
           <input 
             type="text" 
             placeholder="Cari game..." 
-            className="w-full bg-abu border border-gray-700 rounded-full py-2.5 px-4 pl-12 focus:outline-none focus:border-emas text-terang placeholder:text-gray-500 transition-all font-medium" 
+            value={searchQuery}
+            onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsDropdownOpen(true);
+            }}
+            onFocus={() => setIsDropdownOpen(true)}
+            className="w-full bg-gelap border border-gray-700 rounded-full py-2.5 px-5 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-emas/30 focus:border-emas group-hover:border-gray-500 text-terang placeholder:text-gray-500 transition-all font-medium shadow-inner" 
           />
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-emas transition-colors duration-300" />
+          
+          {searchQuery && (
+            <button 
+                onClick={() => {
+                    setSearchQuery("");
+                    setIsDropdownOpen(false);
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-terang transition-colors"
+            >
+                <X className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* hasil search */}
+          {isDropdownOpen && searchQuery && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-gelap border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 flex flex-col max-h-96 overflow-y-auto animate-fade-in">
+                  {filteredGames.length > 0 ? (
+                      filteredGames.map(game => (
+                          <Link
+                              key={game.id}
+                              to={`/topup/${game.id}`}
+                              onClick={() => {
+                                  setIsDropdownOpen(false);
+                                  setSearchQuery("");
+                              }}
+                              className="flex items-center gap-4 p-3 hover:bg-gray-800 transition-colors border-b border-gray-800/50 last:border-0"
+                          >
+                              <img src={game.gambar} alt={game.nama} className="w-12 h-12 rounded-lg object-cover border border-gray-700" />
+                              <div>
+                                  <h4 className="font-bold text-terang text-sm">{game.nama}</h4>
+                                  <p className="text-gray-400 text-xs mt-0.5">{game.publisher}</p>
+                              </div>
+                          </Link>
+                      ))
+                  ) : (
+                      <div className="p-4 text-center text-gray-400 text-sm">
+                          Game tidak ditemukan.
+                      </div>
+                  )}
+              </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3 md:gap-5 mr-4 md:mr-8">
@@ -46,7 +129,7 @@ export default function MainLayout() {
       </nav>
 
       {/* sidebar kiri */}
-      <aside className="fixed top-20 left-0 w-20 lg:w-24 h-[calc(100vh-5rem)] bg-abu/50 border-r border-gray-800 z-40 hidden md:flex flex-col items-center py-4 gap-2 overflow-y-auto">
+      <aside className="fixed top-20 left-0 w-20 lg:w-24 h-[calc(100vh-5rem)] bg-abu border-r border-gray-800 z-40 hidden md:flex flex-col items-center py-4 gap-2 overflow-y-auto shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
         {navItems.map((item) => {
           const isActive = path === item.path || (item.path !== '/' && path.startsWith(item.path));
           return (
@@ -75,12 +158,12 @@ export default function MainLayout() {
             <Outlet /> 
         </div>
 
-        {/* footer */}
         <footer className="w-full text-center p-8 border-t border-gray-800 text-gray-500 text-sm mt-auto bg-gelap/30 backdrop-blur-sm relative z-10 mb-16 md:mb-0">
           &copy; 2026 <span className="text-emas font-bold">AmbaStore</span>. Hak Cipta Dilindungi.
         </footer>
       </main>
 
+      {/* buat mobile */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-abu border-t border-gray-800 z-[60]">
         <div className="flex justify-around items-center h-16">
           {navItems.map((item) => {
