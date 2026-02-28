@@ -68,7 +68,7 @@ export default function Home() {
       
       {/* banner */}
       <div className="w-full relative group mt-0 md:mt-4 px-0">
-        <div className="w-full h-48 sm:h-64 md:h-[450px] lg:h-[450px] rounded-none md:rounded-2xl overflow-hidden relative shadow-2xl shadow-emas/10 border-y md:border border-gelap/50">
+        <div className="w-full h-48 sm:h-64 md:h-[450px] lg:h-[460px] rounded-none md:rounded-2xl overflow-hidden relative shadow-2xl shadow-emas/10 border-y md:border border-gelap/50">
           
           <div 
             className="w-full h-full flex transition-transform duration-700 ease-in-out" 
