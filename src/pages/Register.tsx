@@ -1,38 +1,93 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, AlertCircle } from 'lucide-react';
+import api from '../services/api';
 
 export default function Register() {
   const navigate = useNavigate();
+  
+  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard'); 
+    
+    if (password !== confirmPassword) {
+      setErrorMsg('Konfirmasi kata sandi tidak cocok.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMsg('');
+
+    try {
+      const response = await api.post('/register', {
+        name: name,
+        username: username,
+        email: email,
+        whatsapp: whatsapp,
+        password: password,
+        password_confirmation: confirmPassword 
+      });
+
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        navigate('/dashboard'); 
+      } else {
+        navigate('/login');
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.errors) {
+        const firstErrorKey = Object.keys(error.response.data.errors)[0];
+        setErrorMsg(error.response.data.errors[firstErrorKey][0]);
+      } else if (error.response?.data?.message) {
+        setErrorMsg(error.response.data.message);
+      } else {
+        setErrorMsg('Pendaftaran gagal. Silakan periksa kembali data Anda.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in relative py-4">
       <h2 className="text-3xl font-bold text-terang mb-2">Daftar</h2>
       <p className="text-gray-400 text-sm mb-6">Silakan masukkan informasi pendaftaran yang valid.</p>
+
+      {errorMsg && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6 flex items-start gap-3 text-sm">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p>{errorMsg}</p>
+        </div>
+      )}
 
       <form onSubmit={handleRegister} className="space-y-3.5">
         
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-terang mb-1">Nama lengkap</label>
-            <input type="text" placeholder="Nama lengkap" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama lengkap" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required disabled={isLoading} />
           </div>
           <div>
             <label className="block text-xs font-bold text-terang mb-1">Username</label>
-            <input type="text" placeholder="Username" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required />
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required disabled={isLoading} />
           </div>
         </div>
 
         <div>
           <label className="block text-xs font-bold text-terang mb-1">Alamat email</label>
-          <input type="email" placeholder="Alamat email" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Alamat email" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required disabled={isLoading} />
         </div>
 
         <div>
@@ -41,7 +96,7 @@ export default function Register() {
             <div className="flex items-center justify-center px-4 bg-gray-800 border-r border-gray-700">
               <span className="text-lg">🇮🇩</span>
             </div>
-            <input type="tel" placeholder="+62" className="w-full bg-transparent text-terang py-2.5 px-4 focus:outline-none placeholder:text-gray-500" required />
+            <input type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+62" className="w-full bg-transparent text-terang py-2.5 px-4 focus:outline-none placeholder:text-gray-500" required disabled={isLoading} />
           </div>
         </div>
 
@@ -49,8 +104,8 @@ export default function Register() {
           <div>
             <label className="block text-xs font-bold text-terang mb-1">Kata sandi</label>
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} placeholder="Kata sandi" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 pr-10 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-terang">
+              <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Kata sandi" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 pr-10 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required disabled={isLoading} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-terang" disabled={isLoading}>
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -58,8 +113,8 @@ export default function Register() {
           <div>
             <label className="block text-xs font-bold text-terang mb-1">Konfirmasi sandi</label>
             <div className="relative">
-              <input type={showConfirmPassword ? "text" : "password"} placeholder="Konfirmasi" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 pr-10 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required />
-              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-terang">
+              <input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Konfirmasi" className="w-full bg-abu text-terang border border-gray-700 rounded-lg py-2.5 px-4 pr-10 focus:outline-none focus:ring-1 focus:ring-emas focus:border-emas transition-all placeholder:text-gray-500" required disabled={isLoading} />
+              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-terang" disabled={isLoading}>
                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -67,14 +122,20 @@ export default function Register() {
         </div>
 
         <label className="flex items-start gap-3 cursor-pointer pt-1 pb-2">
-          <input type="checkbox" className="w-4 h-4 mt-0.5 rounded bg-gray-800 border-gray-600 text-emas focus:ring-emas focus:ring-offset-gray-900" required />
+          <input type="checkbox" className="w-4 h-4 mt-0.5 rounded bg-gray-800 border-gray-600 text-emas focus:ring-emas focus:ring-offset-gray-900" required disabled={isLoading} />
           <span className="text-gray-400 font-medium text-sm leading-snug">
             Saya setuju dengan <span className="text-emas hover:text-yellow-500 transition-colors">Syarat dan Ketentuan</span> serta <span className="text-emas hover:text-yellow-500 transition-colors">Kebijakan Privasi</span>.
           </span>
         </label>
 
-        <button type="submit" className="w-full bg-emas hover:bg-yellow-500 text-gelap font-bold py-3 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg">
-          <UserPlus className="w-4 h-4" /> Daftar
+        <button type="submit" disabled={isLoading} className="w-full bg-emas hover:bg-yellow-500 text-gelap font-bold py-3 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed">
+          {isLoading ? (
+            <div className="w-5 h-5 border-2 border-gelap border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <>
+              <UserPlus className="w-4 h-4" /> Daftar
+            </>
+          )}
         </button>
       </form>
 
