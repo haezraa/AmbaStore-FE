@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Settings, Phone } from 'lucide-react';
+import { Settings, Phone } from 'lucide-react';
 import api from '../services/api';
 
 export default function Dashboard() {

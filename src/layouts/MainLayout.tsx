@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Search, Home, Receipt, Trophy, X } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Search, Home, Receipt, Trophy, X, ChevronDown, LogOut, Settings, LayoutDashboard, Coins } from 'lucide-react';
 import api from '../services/api';
 import type { Game } from '../types';
 
 export default function MainLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const path = location.pathname;
 
   // state buat search bar
@@ -14,6 +15,10 @@ export default function MainLayout() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
+  const [user, setUser] = useState<any>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+  
   const navItems = [
     { name: 'Home', path: '/', icon: <Home className="w-6 h-6" /> },
     { name: 'Transaksi', path: '/invoice', icon: <Receipt className="w-6 h-6" /> },
@@ -21,26 +26,39 @@ export default function MainLayout() {
   ];
 
   useEffect(() => {
-    const fetchGames = async () => {
-      try {
-        const response = await api.get('/games');
-        setGames(response.data.data);
-      } catch (error) {
-        console.error("Gagal memuat data game untuk pencarian:", error);
-      }
-    };
-    fetchGames();
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleLogout = () => {
+    // Idealnya manggil api.post('/logout') dulu ke backend
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsProfileOpen(false);
+    navigate('/'); // Balik ke home
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    const names = name.split(' ');
+    if (names.length >= 2) {
+      return (names[0][0] + names[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   const filteredGames = games.filter(game =>
     game.nama.toLowerCase().includes(searchQuery.toLowerCase())
@@ -118,20 +136,70 @@ export default function MainLayout() {
           )}
         </div>
 
-        <div className="flex items-center gap-3 md:gap-5 mr-4 md:mr-8">
+        <div className="flex items-center gap-3 md:gap-5 mr-4 md:mr-8 relative" ref={profileRef}>
+          {user ? (
+            // JIKA USER SUDAH LOGIN
+            <>
+              {/* Amba Coin Display (Opsional di Desktop/Mobile) */}
+               <div className="hidden sm:flex items-center gap-1.5 bg-gray-800/80 px-3 py-1.5 rounded-full border border-gray-700 mr-2">
+                 <Coins className="w-4 h-4 text-emas" />
+                 <span className="text-xs font-bold text-emas">0</span>
+                 <span className="text-[10px] text-gray-400 font-medium ml-0.5">Amba Coin</span>
+               </div>
 
-          <Link
-            to="/login"
-            className="hidden sm:block text-sm font-semibold text-gray-300 hover:text-emas transition-colors">
-            Masuk
-          </Link>
+              {/* Profil Button */}
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-3 hover:bg-gray-800/50 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-gray-700"
+              >
+                {/* Avatar Inisial */}
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emas to-yellow-600 flex items-center justify-center text-gelap font-bold text-sm shadow-md">
+                  {getInitials(user.name)}
+                </div>
+                {/* Username */}
+                <div className="hidden md:flex items-center gap-1">
+                  <span className="text-sm font-bold text-terang max-w-[100px] truncate">{user.username}</span>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+                </div>
+              </button>
 
-          <Link
-            to="/register"
-            className="bg-emas hover:bg-yellow-500 text-gelap px-5 py-2 md:py-2.5 rounded-full text-sm font-bold shadow-lg transition-all">
-            Daftar
-          </Link>
-
+              {/* Dropdown Menu */}
+              {isProfileOpen && (
+                <div className="absolute top-full right-0 mt-3 w-56 bg-gelap border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in flex flex-col py-2">
+                  <div className="px-4 py-3 border-b border-gray-800 mb-1">
+                    <p className="text-sm font-bold text-terang truncate">{user.name}</p>
+                    <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                  </div>
+                  
+                  <Link to="/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 hover:text-emas transition-colors">
+                    <LayoutDashboard className="w-4 h-4" /> Dashboard
+                  </Link>
+                  <Link to="/settings" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 hover:text-emas transition-colors">
+                    <Settings className="w-4 h-4" /> Pengaturan
+                  </Link>
+                  
+                  <div className="h-px bg-gray-800 my-1"></div>
+                  
+                  <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-left font-medium">
+                    <LogOut className="w-4 h-4" /> Keluar
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="hidden sm:block text-sm font-semibold text-gray-300 hover:text-emas transition-colors">
+                Masuk
+              </Link>
+              <Link
+                to="/register"
+                className="bg-emas hover:bg-yellow-500 text-gelap px-5 py-2 md:py-2.5 rounded-full text-sm font-bold shadow-lg transition-all">
+                Daftar
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 

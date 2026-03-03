@@ -39,12 +39,8 @@ export default function Register() {
         password_confirmation: confirmPassword 
       });
 
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/dashboard'); 
-      } else {
-        navigate('/login');
+      if (response.data) { 
+         navigate('/login', { state: { message: 'Pendaftaran berhasil! Silakan login.' } }); 
       }
     } catch (error: any) {
       if (error.response && error.response.data && error.response.data.errors) {
