@@ -9,7 +9,6 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const path = location.pathname;
 
-  // state buat search bar
   const [games, setGames] = useState<Game[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -43,12 +42,11 @@ export default function MainLayout() {
   }, []);
 
   const handleLogout = () => {
-    // Idealnya manggil api.post('/logout') dulu ke backend
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
     setIsProfileOpen(false);
-    navigate('/'); // Balik ke home
+    navigate('/'); 
   };
 
   const getInitials = (name: string) => {
@@ -138,32 +136,26 @@ export default function MainLayout() {
 
         <div className="flex items-center gap-3 md:gap-5 mr-4 md:mr-8 relative" ref={profileRef}>
           {user ? (
-            // JIKA USER SUDAH LOGIN
             <>
-              {/* Amba Coin Display (Opsional di Desktop/Mobile) */}
                <div className="hidden sm:flex items-center gap-1.5 bg-gray-800/80 px-3 py-1.5 rounded-full border border-gray-700 mr-2">
                  <Coins className="w-4 h-4 text-emas" />
                  <span className="text-xs font-bold text-emas">0</span>
                  <span className="text-[10px] text-gray-400 font-medium ml-0.5">Amba Coin</span>
                </div>
 
-              {/* Profil Button */}
               <button 
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-3 hover:bg-gray-800/50 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-gray-700"
               >
-                {/* Avatar Inisial */}
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emas to-yellow-600 flex items-center justify-center text-gelap font-bold text-sm shadow-md">
                   {getInitials(user.name)}
                 </div>
-                {/* Username */}
                 <div className="hidden md:flex items-center gap-1">
                   <span className="text-sm font-bold text-terang max-w-[100px] truncate">{user.username}</span>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                 </div>
               </button>
 
-              {/* Dropdown Menu */}
               {isProfileOpen && (
                 <div className="absolute top-full right-0 mt-3 w-56 bg-gelap border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in flex flex-col py-2">
                   <div className="px-4 py-3 border-b border-gray-800 mb-1">

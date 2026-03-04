@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Settings, Phone } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Settings, Phone, LayoutDashboard, Receipt, Coins } from 'lucide-react';
 import api from '../services/api';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const path = location.pathname;
   
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({
@@ -63,26 +65,52 @@ export default function Dashboard() {
     );
   }
 
+  const dashboardTabs = [
+    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { name: 'Transaksi', path: '/dashboard/transactions', icon: <Receipt className="w-4 h-4" /> },
+    { name: 'Pengaturan', path: '/dashboard/settings', icon: <Settings className="w-4 h-4" /> },
+  ];
+
   return (
-    <div className="max-w-6xl mx-auto animate-fade-in">
+    <div className="max-w-6xl mx-auto animate-fade-in w-full">
       
+      <div className="flex gap-2 overflow-x-auto no-scrollbar mb-8 bg-gray-900/50 p-1.5 rounded-xl border border-gray-800 w-fit shadow-sm">
+        {dashboardTabs.map((tab) => {
+          const isActive = path === tab.path || (tab.path !== '/dashboard' && path.startsWith(tab.path));
+          return (
+            <Link
+              key={tab.name}
+              to={tab.path}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                isActive 
+                  ? 'bg-emas text-gelap shadow-md' 
+                  : 'text-gray-400 hover:text-terang hover:bg-gray-800'
+              }`}
+            >
+              {tab.icon}
+              {tab.name}
+            </Link>
+          );
+        })}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-[#303030] rounded-2xl p-6 shadow-lg border border-gray-700/50 flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-orange-500 flex items-center justify-center text-white text-2xl font-bold uppercase shadow-inner">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emas to-yellow-600 flex items-center justify-center text-gelap text-2xl font-bold uppercase shadow-inner">
                 {user ? getInitials(user.name) : 'US'}
               </div>
               <div>
                 <h3 className="text-white font-bold text-lg capitalize">{user?.name || 'Pengguna'}</h3>
-                <span className="bg-blue-600/20 border border-blue-500/50 text-blue-400 text-xs px-3 py-1 rounded-md font-semibold mt-1 inline-block">
+                <span className="bg-emas/20 border border-emas/50 text-emas text-xs px-3 py-1 rounded-md font-semibold mt-1 inline-block">
                   Member
                 </span>
               </div>
             </div>
-            <button className="text-gray-400 hover:text-white transition-colors" title="Pengaturan Akun">
+            <Link to="/dashboard/settings" className="text-gray-400 hover:text-white transition-colors" title="Pengaturan Akun">
               <Settings className="w-5 h-5" />
-            </button>
+            </Link>
           </div>
           <div className="mt-8 flex items-center gap-2 text-gray-300 text-sm font-medium">
             <Phone className="w-4 h-4" />
@@ -93,19 +121,19 @@ export default function Dashboard() {
         <div className="bg-[#303030] rounded-2xl p-6 shadow-lg border border-gray-700/50 flex flex-col justify-between">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center shadow-[0_0_10px_rgba(234,179,8,0.5)]">
-                <span className="text-black font-bold text-xs">C</span>
+              <div className="w-8 h-8 rounded-full bg-emas flex items-center justify-center shadow-[0_0_10px_rgba(234,179,8,0.5)]">
+                 <Coins className="text-gelap w-5 h-5" />
               </div>
-              <span className="text-white font-bold">Oura Coin</span>
+              <span className="text-white font-bold">Amba Coin</span>
             </div>
             <div className="flex items-center gap-3">
-              <button className="bg-[#A58B61] hover:bg-[#856942] text-white px-4 py-1.5 rounded text-sm font-bold transition-colors shadow-md">Top Up</button>
+              <button className="bg-emas hover:bg-yellow-500 text-gelap px-4 py-1.5 rounded text-sm font-bold transition-colors shadow-md">Top Up</button>
               <button className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded text-sm font-bold transition-colors shadow-md">Redeem</button>
             </div>
           </div>
           <div className="mt-8">
             <h2 className="text-4xl font-black text-white">
-              {stats.coin.toLocaleString('id-ID')} <span className="text-3xl font-bold">Oura Coin</span>
+              {stats.coin.toLocaleString('id-ID')} <span className="text-3xl font-bold">Amba Coin</span>
             </h2>
           </div>
         </div>
@@ -114,12 +142,12 @@ export default function Dashboard() {
       <h3 className="text-white font-bold text-lg mb-4">Transaksi Hari Ini</h3>
       
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="col-span-2 bg-[#424750] rounded-xl p-6 flex flex-col items-center justify-center h-32 shadow-md">
+        <div className="col-span-2 bg-[#424750] rounded-xl p-6 flex flex-col items-center justify-center h-32 shadow-md border border-transparent hover:border-emas transition-all">
           <h4 className="text-3xl font-bold text-white mb-2">{stats.total_transaksi.toLocaleString('id-ID')}</h4>
           <p className="text-gray-300 text-sm font-medium">Total Transaksi</p>
         </div>
         
-        <div className="col-span-2 bg-[#424750] rounded-xl p-6 flex flex-col items-center justify-center h-32 shadow-md">
+        <div className="col-span-2 bg-[#424750] rounded-xl p-6 flex flex-col items-center justify-center h-32 shadow-md border border-transparent hover:border-emas transition-all">
           <h4 className="text-3xl font-bold text-white mb-2">Rp {stats.total_penjualan.toLocaleString('id-ID')}</h4>
           <p className="text-gray-300 text-sm font-medium">Total Pembelanjaan</p>
         </div>
