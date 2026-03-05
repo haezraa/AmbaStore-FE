@@ -16,19 +16,22 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="topup/:id" element={<TopUp />} />
           <Route path="payment/:invoice" element={<Payment />} />
+
+          <Route path="dashboard" element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+            {/* <Route path="transactions" element={<Transactions />} /> */}
+            {/* <Route path="settings" element={<Settings />} /> */}
+          </Route>
         </Route>
 
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-        </Route>
-
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Dashboard />} />
         </Route>
 
       </Routes>

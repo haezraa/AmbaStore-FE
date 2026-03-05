@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Settings, Phone, LayoutDashboard, Receipt, Coins } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Settings, Phone, Coins } from 'lucide-react';
 import api from '../services/api';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const path = location.pathname;
   
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({
@@ -58,42 +56,16 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-4">
+      <div className="flex flex-col items-center justify-center h-full min-h-[50vh] gap-4">
         <div className="w-10 h-10 border-4 border-emas border-t-transparent rounded-full animate-spin"></div>
         <p className="text-emas font-bold animate-pulse">Memuat data dasbor...</p>
       </div>
     );
   }
 
-  const dashboardTabs = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { name: 'Transaksi', path: '/dashboard/transactions', icon: <Receipt className="w-4 h-4" /> },
-    { name: 'Pengaturan', path: '/dashboard/settings', icon: <Settings className="w-4 h-4" /> },
-  ];
-
   return (
-    <div className="max-w-6xl mx-auto animate-fade-in w-full">
+    <div className="max-w-6xl w-full animate-fade-in">
       
-      <div className="flex gap-2 overflow-x-auto no-scrollbar mb-8 bg-gray-900/50 p-1.5 rounded-xl border border-gray-800 w-fit shadow-sm">
-        {dashboardTabs.map((tab) => {
-          const isActive = path === tab.path || (tab.path !== '/dashboard' && path.startsWith(tab.path));
-          return (
-            <Link
-              key={tab.name}
-              to={tab.path}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
-                isActive 
-                  ? 'bg-emas text-gelap shadow-md' 
-                  : 'text-gray-400 hover:text-terang hover:bg-gray-800'
-              }`}
-            >
-              {tab.icon}
-              {tab.name}
-            </Link>
-          );
-        })}
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-[#303030] rounded-2xl p-6 shadow-lg border border-gray-700/50 flex flex-col justify-between">
           <div className="flex justify-between items-start">
@@ -142,12 +114,12 @@ export default function Dashboard() {
       <h3 className="text-white font-bold text-lg mb-4">Transaksi Hari Ini</h3>
       
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="col-span-2 bg-[#424750] rounded-xl p-6 flex flex-col items-center justify-center h-32 shadow-md border border-transparent hover:border-emas transition-all">
+        <div className="col-span-2 bg-[#424750] rounded-xl p-6 flex flex-col items-center justify-center h-32 shadow-md hover:border-emas border border-transparent transition-all">
           <h4 className="text-3xl font-bold text-white mb-2">{stats.total_transaksi.toLocaleString('id-ID')}</h4>
           <p className="text-gray-300 text-sm font-medium">Total Transaksi</p>
         </div>
         
-        <div className="col-span-2 bg-[#424750] rounded-xl p-6 flex flex-col items-center justify-center h-32 shadow-md border border-transparent hover:border-emas transition-all">
+        <div className="col-span-2 bg-[#424750] rounded-xl p-6 flex flex-col items-center justify-center h-32 shadow-md hover:border-emas border border-transparent transition-all">
           <h4 className="text-3xl font-bold text-white mb-2">Rp {stats.total_penjualan.toLocaleString('id-ID')}</h4>
           <p className="text-gray-300 text-sm font-medium">Total Pembelanjaan</p>
         </div>
