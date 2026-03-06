@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, CheckCircle2, ShieldCheck, X, Mail, Phone, TicketPercent, 
-  Gamepad2, Wallet, User, Zap, AlertCircle, HelpCircle
+  Gamepad2, Wallet, User, Zap, AlertCircle, HelpCircle, Coins
 } from 'lucide-react';
 import api from '../services/api';
 import type { Game, Nominal, PaymentMethod } from '../types';
@@ -112,6 +112,7 @@ export default function TopUp() {
   const [serverId, setServerId] = useState("");
   const [nominalPilihan, setNominalPilihan] = useState<Nominal | null>(null);
   const [paymentPilihan, setPaymentPilihan] = useState<PaymentMethod | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -131,6 +132,11 @@ export default function TopUp() {
   };
 
   useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+
     const fetchData = async () => {
       try {
         const [gameRes, paymentRes] = await Promise.all([
@@ -223,6 +229,7 @@ export default function TopUp() {
   const hargaAsli = nominalPilihan ? nominalPilihan.harga : 0;
   const pajak = hargaAsli * 0.11;
   const totalBayar = hargaAsli + pajak;
+  const hargaKoin = Math.ceil(totalBayar / 1000);
   
   const categories = Array.from(new Set(game.nominals.map(n => n.kategori)));
 
@@ -328,6 +335,7 @@ export default function TopUp() {
 
         <div className="lg:col-span-8 space-y-8">
           
+          {/* data akun */}
           <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
             <div className="bg-gelap p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">1</div>
@@ -415,10 +423,11 @@ export default function TopUp() {
             </div>
           </div>
 
+          {/* pilih item */}
           <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
             <div className="bg-gelap p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">2</div>
-               <h3 className="text-lg font-bold text-terang">Pilih Nominal</h3>
+               <h3 className="text-lg font-bold text-terang">Pilih Item</h3>
             </div>
             <div className="p-6">
                 {categories.map((kategori) => (
@@ -462,12 +471,51 @@ export default function TopUp() {
             </div>
           </div>
 
+          {/* pay method */}
           <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
             <div className="bg-gelap p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">3</div>
                <h3 className="text-lg font-bold text-terang">Metode Pembayaran</h3>
             </div>
             <div className="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                
+                {/* metod amba */}
+                {user && (
+                    <button 
+                        onClick={() => {
+                            if(!nominalPilihan) { showToast("Pilih nominal dulu bro!", "error"); return; }
+                            if ((user.amba_coin || 0) < hargaKoin) {
+                                showToast(`Amba Coin mu tidak cukup! Butuh ${hargaKoin} Coin.`, "error");
+                                return;
+                            }
+                            setPaymentPilihan({ id: 999, nama: "Amba Coin", gambar: "/images/amba-coin.png" } as any);
+                        }}
+                        className={`
+                            relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-200 h-24 overflow-hidden
+                            ${paymentPilihan?.nama === "Amba Coin" 
+                                ? 'bg-emas border-emas ring-4 ring-emas/30 transform scale-105 z-10' 
+                                : 'bg-gelap border-emas hover:scale-105 hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]'}
+                        `}
+                    >
+                        <div className="absolute -top-3 -right-3 bg-emas w-10 h-10 rounded-full opacity-20"></div>
+                        <div className="flex items-center gap-1.5 z-10">
+                            <Coins className={`w-5 h-5 ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-emas'}`} />
+                            <span className={`font-black text-sm ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-emas'}`}>
+                                {nominalPilihan ? hargaKoin : 0} COIN
+                            </span>
+                        </div>
+                        <span className={`text-[10px] font-bold text-center uppercase tracking-wide mt-1 z-10 ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-gray-400'}`}>
+                            Sisa Saldo: {user.amba_coin || 0}
+                        </span>
+                        
+                        {paymentPilihan?.nama === "Amba Coin" && (
+                            <div className="absolute top-0 right-0 bg-gelap w-6 h-6 rounded-bl-xl flex items-center justify-center shadow-md animate-fade-in z-20">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emas" />
+                            </div>
+                        )}
+                    </button>
+                )}
+
                 {payments.map((pay) => (
                     <button 
                         key={pay.id}
@@ -491,6 +539,7 @@ export default function TopUp() {
             </div>
           </div>
 
+          {/* kontak */}
           <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
             <div className="bg-gelap p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">4</div>
@@ -514,6 +563,7 @@ export default function TopUp() {
             </div>
           </div>
 
+          {/* kode */}
           <div className="bg-abu rounded-3xl border border-gray-700/50 overflow-hidden shadow-lg">
              <div className="bg-gelap p-4 border-b border-gray-700/50 flex items-center gap-3">
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">5</div>
@@ -542,7 +592,13 @@ export default function TopUp() {
                     </div>
                     <div>
                         <p className="text-gray-400 text-xs uppercase tracking-wide">Total Pembayaran</p>
-                        <div className="text-3xl font-bold text-emas drop-shadow-md">Rp {totalBayar.toLocaleString('id-ID')}</div>
+                        
+                        {paymentPilihan.nama === "Amba Coin" ? (
+                            <div className="text-3xl font-bold text-emas drop-shadow-md">{hargaKoin} COIN</div>
+                        ) : (
+                            <div className="text-3xl font-bold text-emas drop-shadow-md">Rp {totalBayar.toLocaleString('id-ID')}</div>
+                        )}
+
                         <p className="text-terang text-sm font-medium mt-1 flex items-center gap-2">
                             {nominalPilihan.jumlah} <span className="text-gray-500">|</span> {paymentPilihan.nama}
                         </p>
@@ -593,21 +649,28 @@ export default function TopUp() {
                               <span className="text-gray-400">Bayar dengan:</span> 
                               <span className="text-terang font-bold">{paymentPilihan.nama}</span>
                           </div>
-                          <div className="flex justify-between items-center border-b border-gray-700/50 pb-2">
-                              <span className="text-gray-400">Harga:</span> 
-                              <span className="text-terang font-bold">Rp {hargaAsli.toLocaleString('id-ID')}</span>
-                          </div>
-                          <div className="flex justify-between items-center pb-1">
-                              <span className="text-gray-400">Pajak: (11%)</span> 
-                              <span className="text-terang font-bold">Rp {pajak.toLocaleString('id-ID')}</span>
-                          </div>
+                          
+                          {paymentPilihan.nama !== "Amba Coin" && (
+                              <>
+                                <div className="flex justify-between items-center border-b border-gray-700/50 pb-2">
+                                    <span className="text-gray-400">Harga:</span> 
+                                    <span className="text-terang font-bold">Rp {hargaAsli.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-1">
+                                    <span className="text-gray-400">Pajak: (11%)</span> 
+                                    <span className="text-terang font-bold">Rp {pajak.toLocaleString('id-ID')}</span>
+                                </div>
+                              </>
+                          )}
                       </div>
                   </div>
 
                   <div className="bg-gelap p-5 border-t border-gray-700/50 flex justify-between items-center">
                       <div>
                           <p className="text-gray-400 text-xs mb-1">Total pembayaran</p>
-                          <div className="text-2xl font-bold text-emas">Rp {totalBayar.toLocaleString('id-ID')}</div>
+                          <div className="text-2xl font-bold text-emas">
+                              {paymentPilihan.nama === "Amba Coin" ? `${hargaKoin} COIN` : `Rp ${totalBayar.toLocaleString('id-ID')}`}
+                          </div>
                       </div>
                       <button onClick={handleFinalConfirm} className="bg-emas text-gelap hover:bg-yellow-500 font-bold py-2.5 px-6 rounded-xl shadow-md transition-colors">
                           Konfirm
