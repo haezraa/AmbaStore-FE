@@ -8,7 +8,9 @@ import api from '../services/api';
 import type { Game, Nominal, PaymentMethod } from '../types';
 
 const getGameConfig = (gameName: string) => {
+
     switch (gameName) {
+
         case 'Mobile Legends':
             return {
                 placeholder1: "Masukkan User ID",
@@ -16,18 +18,21 @@ const getGameConfig = (gameName: string) => {
                 tip: "Untuk mengetahui User ID Anda, silakan klik menu profile dibagian kiri atas pada menu utama game. User ID akan terlihat dibagian bawah Nama Karakter Game Anda. Silakan masukkan User ID Anda untuk menyelesaikan transaksi. Contoh : 12345678(1234).",
                 servers: []
             };
+
         case 'Free Fire':
             return {
                 placeholder1: "Masukkan Player ID",
                 tip: "Untuk menemukan ID Anda, klik pada ikon karakter. User ID tercantum di bawah nama karakter Anda. Contoh: '5363266446'.",
                 servers: []
             };
+
         case 'Call of Duty: Mobile':
             return {
                 placeholder1: "Masukkan Player ID",
                 tip: "Untuk menemukan PlayerID Anda, klik ikon 'settings' yang terletak di sebelah kanan layar dan klik tab 'LEGAL AND PRIVACY', Anda dapat menemukan PlayerID Anda di sini.",
                 servers: []
             };
+
         case 'Genshin Impact':
             return {
                 placeholder1: "Masukkan UID",
@@ -39,12 +44,14 @@ const getGameConfig = (gameName: string) => {
                     { value: "os_cht", label: "TW, HK, MO" }
                 ]
             };
+
         case 'Valorant':
             return {
                 placeholder1: "Masukkan Riot ID",
                 tip: "Untuk menemukan Riot ID Anda, buka halaman profil akun dan salin Riot ID+Tag menggunakan tombol yang tersedia disamping Riot ID. (Contoh: Westbourne#SEA)",
                 servers: []
             };
+
         case 'Honkai: Star Rail':
             return {
                 placeholder1: "Masukkan UID",
@@ -56,6 +63,7 @@ const getGameConfig = (gameName: string) => {
                     { value: "prod_official_cht", label: "TW, HK, MO" }
                 ]
             };
+
         case 'Zenless Zone Zero':
             return {
                 placeholder1: "Masukkan UID",
@@ -67,6 +75,7 @@ const getGameConfig = (gameName: string) => {
                     { value: "prod_gf_sg", label: "TW, HK, MO" }
                 ]
             };
+
         case 'Magic Chess: Go Go':
             return {
                 placeholder1: "Masukkan User ID",
@@ -74,6 +83,7 @@ const getGameConfig = (gameName: string) => {
                 tip: "Login ke dalam Game, Tap pada Avatar di pojok kiri atas untuk memasuki halaman informasi dasar dan mengecek ID Anda.",
                 servers: []
             };
+
         case 'Punishing: Gray Raven':
             return {
                 placeholder1: "Masukkan Role ID",
@@ -84,6 +94,7 @@ const getGameConfig = (gameName: string) => {
                     { value: "North America", label: "North America" }
                 ]
             };
+
         case 'Arena of Valor':
             return {
                 placeholder1: "Masukkan Player ID",
@@ -91,6 +102,7 @@ const getGameConfig = (gameName: string) => {
                 servers: []
             };
         default:
+
             return {
                 placeholder1: "Masukkan User ID",
                 tip: "Masukkan ID Anda yang valid.",
@@ -215,7 +227,18 @@ export default function TopUp() {
     return () => { document.body.style.overflow = 'unset'; }
   }, [showModal]);
 
-  const gameConfig = game ? getGameConfig(game.nama) : null;
+  const hargaAsli = nominalPilihan ? nominalPilihan.harga : 0;
+  const pajak = hargaAsli * 0.11;
+  const totalBayar = hargaAsli + pajak;
+  const hargaKoin = Math.ceil(totalBayar / 1000);
+
+  useEffect(() => {
+      if (paymentPilihan?.nama === "Amba Coin" && user) {
+          if ((user.amba_coin || 0) < hargaKoin) {
+              setPaymentPilihan(null);
+          }
+      }
+  }, [hargaKoin, paymentPilihan, user]);
 
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gelap">
@@ -226,11 +249,7 @@ export default function TopUp() {
   
   if (!game) return <div className="text-center py-20 text-terang">Game tidak ditemukan.</div>;
 
-  const hargaAsli = nominalPilihan ? nominalPilihan.harga : 0;
-  const pajak = hargaAsli * 0.11;
-  const totalBayar = hargaAsli + pajak;
-  const hargaKoin = Math.ceil(totalBayar / 1000);
-  
+  const gameConfig = getGameConfig(game.nama);
   const categories = Array.from(new Set(game.nominals.map(n => n.kategori)));
 
   const handleBeliSekarang = () => {
@@ -252,6 +271,13 @@ export default function TopUp() {
     if (!nickname) {
         showToast("ID tidak ditemukan. Silakan periksa kembali data akun Anda.", "error");
         return;
+    }
+
+    if (paymentPilihan.nama === "Amba Coin") {
+        if ((user?.amba_coin || 0) < hargaKoin) {
+            showToast(`Amba Coin mu tidak cukup! Butuh ${hargaKoin} Coin.`, "error");
+            return;
+        }
     }
 
     setShowModal(true);
@@ -303,7 +329,7 @@ export default function TopUp() {
   return (
     <div className="w-full max-w-7xl mx-auto px-4 md:px-6 pb-40 pt-6 relative">
       
-      <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] transition-all duration-300 ease-out flex items-center gap-3 px-6 py-4 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] border ${toast.show ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'} ${toast.type === 'error' ? 'bg-red-500/95 border-red-400 text-white backdrop-blur-md' : 'bg-green-600/95 border-green-400 text-white backdrop-blur-md'}`}>
+      <div className={`fixed top-28 left-1/2 transform -translate-x-1/2 z-[100] transition-all duration-300 ease-out flex items-center gap-3 px-6 py-4 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] border ${toast.show ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'} ${toast.type === 'error' ? 'bg-red-500/95 border-red-400 text-white backdrop-blur-md' : 'bg-green-600/95 border-green-400 text-white backdrop-blur-md'}`}>
           {toast.type === 'error' ? <AlertCircle className="w-6 h-6 flex-shrink-0" /> : <CheckCircle2 className="w-6 h-6 flex-shrink-0" />}
           <span className="font-bold text-sm md:text-base">{toast.message}</span>
       </div>
@@ -477,65 +503,75 @@ export default function TopUp() {
                <div className="bg-emas w-8 h-8 rounded-lg flex items-center justify-center text-gelap font-black text-lg">3</div>
                <h3 className="text-lg font-bold text-terang">Metode Pembayaran</h3>
             </div>
-            <div className="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="p-6">
                 
-                {/* metod amba */}
                 {user && (
-                    <button 
-                        onClick={() => {
-                            if(!nominalPilihan) { showToast("Pilih nominal dulu bro!", "error"); return; }
-                            if ((user.amba_coin || 0) < hargaKoin) {
-                                showToast(`Amba Coin mu tidak cukup! Butuh ${hargaKoin} Coin.`, "error");
-                                return;
-                            }
-                            setPaymentPilihan({ id: 999, nama: "Amba Coin", gambar: "/images/amba-coin.png" } as any);
-                        }}
-                        className={`
-                            relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-200 h-24 overflow-hidden
-                            ${paymentPilihan?.nama === "Amba Coin" 
-                                ? 'bg-emas border-emas ring-4 ring-emas/30 transform scale-105 z-10' 
-                                : 'bg-gelap border-emas hover:scale-105 hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]'}
-                        `}
-                    >
-                        <div className="absolute -top-3 -right-3 bg-emas w-10 h-10 rounded-full opacity-20"></div>
-                        <div className="flex items-center gap-1.5 z-10">
-                            <Coins className={`w-5 h-5 ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-emas'}`} />
-                            <span className={`font-black text-sm ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-emas'}`}>
-                                {nominalPilihan ? hargaKoin : 0} COIN
-                            </span>
+                    <div className="mb-8">
+                        <h4 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2 border-l-4 border-emas pl-3">Coin</h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            <button 
+                                onClick={() => {
+                                    if(!nominalPilihan) { showToast("Pilih nominal dulu bro!", "error"); return; }
+                                    if ((user.amba_coin || 0) < hargaKoin) {
+                                        showToast(`Amba Coin mu tidak cukup! Butuh ${hargaKoin} Coin.`, "error");
+                                        return;
+                                    }
+                                    setPaymentPilihan({ id: 999, nama: "Amba Coin", gambar: "/images/amba-coin.png" } as any);
+                                }}
+                                className={`
+                                    relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-200 h-24 overflow-hidden
+                                    ${paymentPilihan?.nama === "Amba Coin" 
+                                        ? 'bg-emas border-emas ring-4 ring-emas/30 transform scale-105 z-10' 
+                                        : 'bg-gelap border-emas hover:scale-105 hover:shadow-[0_0_15px_rgba(234,179,8,0.4)]'}
+                                `}
+                            >
+                                <div className="absolute -top-3 -right-3 bg-emas w-10 h-10 rounded-full opacity-20"></div>
+                                <div className="flex items-center gap-1.5 z-10">
+                                    <Coins className={`w-5 h-5 ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-emas'}`} />
+                                    <span className={`font-black text-sm ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-emas'}`}>
+                                        {nominalPilihan ? hargaKoin : 0} COIN
+                                    </span>
+                                </div>
+                                <span className={`text-[10px] font-bold text-center uppercase tracking-wide mt-1 z-10 ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-gray-400'}`}>
+                                    Sisa Saldo: {user.amba_coin || 0}
+                                </span>
+                                
+                                {paymentPilihan?.nama === "Amba Coin" && (
+                                    <div className="absolute top-0 right-0 bg-gelap w-6 h-6 rounded-bl-xl flex items-center justify-center shadow-md animate-fade-in z-20">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emas" />
+                                    </div>
+                                )}
+                            </button>
                         </div>
-                        <span className={`text-[10px] font-bold text-center uppercase tracking-wide mt-1 z-10 ${paymentPilihan?.nama === "Amba Coin" ? 'text-gelap' : 'text-gray-400'}`}>
-                            Sisa Saldo: {user.amba_coin || 0}
-                        </span>
-                        
-                        {paymentPilihan?.nama === "Amba Coin" && (
-                            <div className="absolute top-0 right-0 bg-gelap w-6 h-6 rounded-bl-xl flex items-center justify-center shadow-md animate-fade-in z-20">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emas" />
-                            </div>
-                        )}
-                    </button>
+                    </div>
                 )}
 
-                {payments.map((pay) => (
-                    <button 
-                        key={pay.id}
-                        onClick={() => setPaymentPilihan(pay)}
-                        className={`
-                            relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-200 h-24 bg-terang overflow-hidden
-                            ${paymentPilihan?.id === pay.id 
-                                ? 'border-emas ring-4 ring-emas/30 transform scale-105 z-10' 
-                                : 'border-gray-200 hover:scale-105 hover:shadow-lg'}
-                        `}
-                    >
-                        <img src={pay.gambar} alt={pay.nama} className="h-8 object-contain" />
-                        <span className="text-[10px] font-bold text-gray-800 text-center uppercase tracking-wide mt-1">{pay.nama}</span>
-                        {paymentPilihan?.id === pay.id && (
-                            <div className="absolute top-0 right-0 bg-emas w-6 h-6 rounded-bl-xl flex items-center justify-center shadow-md animate-fade-in">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-gelap" />
-                            </div>
-                        )}
-                    </button>
-                ))}
+                <div>
+                    <h4 className="text-gray-400 font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2 border-l-4 border-emas pl-3">Semua Pembayaran</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {payments.map((pay) => (
+                            <button 
+                                key={pay.id}
+                                onClick={() => setPaymentPilihan(pay)}
+                                className={`
+                                    relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-200 h-24 bg-terang overflow-hidden
+                                    ${paymentPilihan?.id === pay.id 
+                                        ? 'border-emas ring-4 ring-emas/30 transform scale-105 z-10' 
+                                        : 'border-gray-200 hover:scale-105 hover:shadow-lg'}
+                                `}
+                            >
+                                <img src={pay.gambar} alt={pay.nama} className="h-8 object-contain" />
+                                <span className="text-[10px] font-bold text-gray-800 text-center uppercase tracking-wide mt-1">{pay.nama}</span>
+                                {paymentPilihan?.id === pay.id && (
+                                    <div className="absolute top-0 right-0 bg-emas w-6 h-6 rounded-bl-xl flex items-center justify-center shadow-md animate-fade-in">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-gelap" />
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
             </div>
           </div>
 
