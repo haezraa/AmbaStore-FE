@@ -27,12 +27,6 @@ export default function MainLayout() {
     { name: 'Leaderboard', path: '/leaderboard', icon: <Trophy className="w-6 h-6" /> },
   ];
 
-  const dashboardTabs = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { name: 'Transaksi', path: '/dashboard/transactions', icon: <Receipt className="w-4 h-4" /> },
-    { name: 'Pengaturan', path: '/dashboard/settings', icon: <Settings className="w-4 h-4" /> },
-  ];
-
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -127,33 +121,38 @@ export default function MainLayout() {
   return (
     <div className="min-h-screen bg-gelap text-terang font-sans selection:bg-emas selection:text-gelap flex flex-col md:flex-row relative overflow-x-hidden">
 
-      <nav className="fixed top-0 left-0 w-full h-20 border-b border-gray-800 bg-abu z-50 flex items-center justify-between shadow-md transition-all">
-        <Link to="/" className="flex items-center flex-shrink-0 ml-14 md:ml-40 lg:ml-48">
+      <nav className="fixed top-0 left-0 w-full h-20 border-b border-gray-800 bg-abu z-50 flex items-center justify-between px-4 lg:px-8 shadow-md transition-all gap-4 lg:gap-8">
+        
+        <Link to="/" className="flex items-center flex-shrink-0">
           <img src="/images/ambatukam.jpg" alt="Logo AmbaStore" className="h-10 md:h-12 object-contain hover:scale-105 transition-transform" />
         </Link>
 
-        <div ref={searchRef} className="hidden md:flex flex-1 max-w-xl mx-8 relative group">
+        <div ref={searchRef} className="hidden md:flex flex-1 max-w-3xl relative group mx-4">
           <input
             type="text"
-            placeholder="Cari game..."
+            placeholder="Cari game kesukaanmu..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setIsDropdownOpen(true); }}
             onFocus={() => setIsDropdownOpen(true)}
-            className="w-full bg-gelap border border-gray-700 rounded-full py-2.5 px-5 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-emas/30 focus:border-emas text-terang placeholder:text-gray-500 transition-all font-medium shadow-inner"
+            className="w-full bg-gelap/40 border border-gray-700/80 hover:border-gray-500 focus:border-emas focus:bg-gelap rounded-full py-2.5 px-5 pl-12 pr-12 text-terang placeholder:text-gray-400 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emas/10 shadow-sm text-sm"
           />
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-emas transition-colors duration-300" />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emas transition-colors duration-300" />
+          
           {searchQuery && (
-            <button onClick={() => { setSearchQuery(""); setIsDropdownOpen(false); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-terang transition-colors">
-              <X className="w-5 h-5" />
+            <button 
+              onClick={() => { setSearchQuery(""); setIsDropdownOpen(false); }} 
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white bg-gray-700/50 hover:bg-gray-600 p-1 rounded-full transition-all"
+            >
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
 
           {isDropdownOpen && searchQuery && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-gelap border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 flex flex-col max-h-96 overflow-y-auto animate-fade-in">
+            <div className="absolute top-full left-0 right-0 mt-3 bg-gelap border border-gray-700 rounded-2xl shadow-2xl overflow-hidden z-50 flex flex-col max-h-96 overflow-y-auto animate-fade-in">
               {filteredGames.length > 0 ? (
                 filteredGames.map(game => (
                   <Link key={game.id} to={`/topup/${game.id}`} onClick={() => { setIsDropdownOpen(false); setSearchQuery(""); }} className="flex items-center gap-4 p-3 hover:bg-gray-800 transition-colors border-b border-gray-800/50 last:border-0">
-                    <img src={game.gambar} alt={game.nama} className="w-12 h-12 rounded-lg object-cover border border-gray-700" />
+                    <img src={game.gambar} alt={game.nama} className="w-10 h-10 rounded-lg object-cover border border-gray-700" />
                     <div>
                       <h4 className="font-bold text-terang text-sm">{game.nama}</h4>
                       <p className="text-gray-400 text-xs mt-0.5">{game.publisher}</p>
@@ -161,22 +160,29 @@ export default function MainLayout() {
                   </Link>
                 ))
               ) : (
-                <div className="p-4 text-center text-gray-400 text-sm">Game tidak ditemukan.</div>
+                <div className="p-6 text-center text-gray-400 text-sm">Game tidak ditemukan.</div>
               )}
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-3 md:gap-5 mr-4 md:mr-8 relative" ref={profileRef}>
+        <div className="flex items-center gap-3 md:gap-4 flex-shrink-0 relative" ref={profileRef}>
           {user ? (
             <>
-               <div className="hidden sm:flex items-center gap-2 bg-gray-800/80 px-4 py-2 rounded-full border border-gray-700 mr-1 shadow-sm h-10">
-                 <Coins className="w-5 h-5 text-emas" />
-                 <span className="text-sm font-bold text-emas">{user.amba_coin || 0}</span>
-                 <span className="text-xs text-gray-400 font-medium">Amba Coin</span>
+               <div className="hidden sm:flex items-center gap-2.5 bg-gelap/50 px-2 py-1.5 rounded-full border border-gray-700/80 hover:border-emas/50 transition-all duration-300 shadow-sm h-10 group cursor-default">
+                 <div className="flex items-center justify-center bg-emas w-7 h-7 rounded-full shadow-[0_0_10px_rgba(234,179,8,0.3)] group-hover:shadow-[0_0_15px_rgba(234,179,8,0.5)] transition-all group-hover:scale-105">
+                    <Coins className="w-4 h-4 text-gelap" />
+                 </div>
+                 <div className="flex items-baseline gap-1 pr-3">
+                    <span className="text-sm font-black text-terang">{user.amba_coin || 0}</span>
+                    <span className="text-[10px] font-bold text-emas tracking-wider">Amba Coin</span>
+                 </div>
                </div>
 
-              <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 hover:bg-gray-800/50 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-gray-700 h-10">
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)} 
+                className="flex items-center gap-2.5 hover:bg-gray-800/50 p-1 pr-3 rounded-full transition-all border border-gray-700/0 hover:border-gray-700 h-10"
+              >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emas to-yellow-600 flex items-center justify-center text-gelap font-bold text-sm shadow-md">
                   {getInitials(user.name)}
                 </div>
@@ -208,7 +214,7 @@ export default function MainLayout() {
           ) : (
             <>
               <Link to="/login" className="hidden sm:block text-sm font-semibold text-gray-300 hover:text-emas transition-colors">Masuk</Link>
-              <Link to="/register" className="bg-emas hover:bg-yellow-500 text-gelap px-5 py-2 md:py-2.5 rounded-full text-sm font-bold shadow-lg transition-all">Daftar</Link>
+              <Link to="/register" className="bg-emas hover:bg-yellow-500 text-gelap px-5 py-2 rounded-full text-sm font-bold shadow-lg transition-all h-10 flex items-center justify-center">Daftar</Link>
             </>
           )}
         </div>
@@ -228,19 +234,6 @@ export default function MainLayout() {
       </aside>
 
       <main className="flex-1 w-full mt-20 md:ml-20 lg:ml-24 min-h-[calc(100vh-5rem)] flex flex-col relative z-10">
-        {path.startsWith('/dashboard') && (
-          <div className="sticky top-20 z-40 bg-abu/95 backdrop-blur-md border-b border-gray-800 px-4 md:px-6 py-3 flex gap-2 overflow-x-auto no-scrollbar shadow-sm">
-            {dashboardTabs.map((tab) => {
-              const isActive = path === tab.path || (tab.path !== '/dashboard' && path.startsWith(tab.path));
-              return (
-                <Link key={tab.name} to={tab.path} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${isActive ? 'bg-emas/10 text-emas border border-emas/30' : 'text-gray-400 hover:text-terang hover:bg-gray-800 border border-transparent'}`}>
-                  {tab.icon} {tab.name}
-                </Link>
-              );
-            })}
-          </div>
-        )}
-
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-24 md:pb-12 flex-1">
           <Outlet />
         </div>
@@ -267,7 +260,6 @@ export default function MainLayout() {
         </div>
       </div>
 
-      {/* daily reward */}
       {showDailyPopup && user && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
             <div className="bg-gradient-to-b from-gray-800 to-gelap w-full max-w-lg rounded-3xl shadow-[0_0_50px_rgba(234,179,8,0.2)] overflow-hidden border border-emas/30 relative">
