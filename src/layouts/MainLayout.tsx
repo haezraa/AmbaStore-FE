@@ -1,8 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Home, Receipt, Trophy, X, ChevronDown, LogOut, Settings, LayoutDashboard, Coins, CheckCircle2 } from 'lucide-react';
+import { Search, Home, Receipt, Trophy, X, ChevronDown, LogOut, Settings, LayoutDashboard, CheckCircle2 } from 'lucide-react';
 import api from '../services/api';
 import type { Game } from '../types';
+
+const AmbaCoinIcon = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={className}>
+    <defs>
+      <linearGradient id="goldOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FDE047" />
+        <stop offset="40%" stopColor="#EAB308" />
+        <stop offset="100%" stopColor="#854D0E" />
+      </linearGradient>
+      <linearGradient id="goldInner" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#CA8A04" />
+        <stop offset="50%" stopColor="#FDE047" />
+        <stop offset="100%" stopColor="#EAB308" />
+      </linearGradient>
+    </defs>
+    
+    <circle cx="12" cy="12" r="11" fill="url(#goldOuter)" stroke="#713F12" strokeWidth="0.5" />
+    <circle cx="12" cy="12" r="8.5" fill="url(#goldInner)" />
+    <circle cx="12" cy="12" r="8.5" fill="none" stroke="#CA8A04" strokeWidth="0.5" strokeDasharray="1.5 1.5" />
+    <text x="12" y="16.2" fontFamily="sans-serif" fontSize="12" fontWeight="900" fill="#713F12" textAnchor="middle">A</text>
+    <path d="M 6.5 6.5 Q 12 2.5 17.5 6.5" fill="none" stroke="#FFFBEB" strokeWidth="1" opacity="0.6" strokeLinecap="round" />
+  </svg>
+);
 
 export default function MainLayout() {
   const location = useLocation();
@@ -170,12 +193,12 @@ export default function MainLayout() {
           {user ? (
             <>
                <div className="hidden sm:flex items-center gap-2.5 bg-gelap/50 px-2 py-1.5 rounded-full border border-gray-700/80 hover:border-emas/50 transition-all duration-300 shadow-sm h-10 group cursor-default">
-                 <div className="flex items-center justify-center bg-emas w-7 h-7 rounded-full shadow-[0_0_10px_rgba(234,179,8,0.3)] group-hover:shadow-[0_0_15px_rgba(234,179,8,0.5)] transition-all group-hover:scale-105">
-                    <Coins className="w-4 h-4 text-gelap" />
+                 <div className="flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]">
+                    <AmbaCoinIcon className="w-7 h-7" />
                  </div>
                  <div className="flex items-baseline gap-1 pr-3">
                     <span className="text-sm font-black text-terang">{user.amba_coin || 0}</span>
-                    <span className="text-[10px] font-bold text-emas tracking-wider">Amba Coin</span>
+                    <span className="text-[10px] font-bold text-emas tracking-wider">COIN</span>
                  </div>
                </div>
 
@@ -288,8 +311,10 @@ export default function MainLayout() {
                                     <span className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${isPassed ? 'text-emas' : isToday ? 'text-gelap' : 'text-gray-500'}`}>
                                         Hari {day}
                                     </span>
-                                    <Coins className={`w-8 h-8 ${isPassed ? 'text-emas opacity-50' : isToday ? 'text-gelap' : 'text-gray-600'}`} />
-                                    <span className={`font-black mt-1 ${isPassed ? 'text-emas' : isToday ? 'text-gelap' : 'text-gray-500'}`}>
+                                    
+                                    <AmbaCoinIcon className={`w-9 h-9 ${isPassed ? 'opacity-50 grayscale' : isToday ? 'drop-shadow-[0_0_10px_rgba(234,179,8,0.6)] scale-110' : 'opacity-80'}`} />
+                                    
+                                    <span className={`font-black mt-2 ${isPassed ? 'text-emas' : isToday ? 'text-gelap' : 'text-gray-500'}`}>
                                         +{isDay7 ? 2 : 1}
                                     </span>
                                     
